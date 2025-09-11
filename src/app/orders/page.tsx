@@ -31,13 +31,16 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && user) {
-      const userOrders = getUserOrders(user.uid);
-      setOrders(userOrders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
-      setLoading(false);
-    } else if (!authLoading && !user) {
-      setLoading(false);
+    const fetchOrders = async () => {
+        if (!authLoading && user) {
+            const userOrders = await getUserOrders(user.uid);
+            setOrders(userOrders);
+            setLoading(false);
+        } else if (!authLoading && !user) {
+            setLoading(false);
+        }
     }
+    fetchOrders();
   }, [user, authLoading]);
 
   if (authLoading || loading) {

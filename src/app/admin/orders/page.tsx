@@ -39,9 +39,12 @@ export default function AdminOrdersPage() {
       if (!user || user.role !== 'admin') {
         router.push('/');
       } else {
-        const fetchedOrders = getAllOrders();
-        setOrders(fetchedOrders);
-        setLoading(false);
+        const fetchOrders = async () => {
+            const fetchedOrders = await getAllOrders();
+            setOrders(fetchedOrders);
+            setLoading(false);
+        }
+        fetchOrders();
       }
     }
   }, [user, authLoading, router]);

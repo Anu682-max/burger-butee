@@ -10,9 +10,10 @@ import {
   type ReactNode,
 } from 'react';
 import type { User } from '@/lib/types';
-// To enable real Firebase authentication, uncomment the following lines:
-// import { onAuthStateChanged, signOut as firebaseSignOut, type User as FirebaseUser } from 'firebase/auth';
-// import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, signOut as firebaseSignOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, type User as FirebaseUser } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+
 
 interface AuthContextType {
   user: User | null;
@@ -24,42 +25,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data for development
-const mockUser: User = {
-  uid: 'mock-user-123',
-  email: 'test@example.com',
-  displayName: 'Тест Хэрэглэгч',
-  role: 'customer',
-};
-const mockAdmin: User = {
-  uid: 'mock-admin-123',
-  email: 'admin@example.com',
-  displayName: 'Админ',
-  role: 'admin',
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // --- MOCK AUTHENTICATION ---
-    const storedUser = sessionStorage.getItem('burger-land-user');
-    if (storedUser) {
-        setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-
-    /*
-    // --- REAL FIREBASE AUTHENTICATION ---
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        // In a real app, you would fetch the user's role from your database (e.g., Firestore)
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        let userRole: 'customer' | 'admin' = 'customer';
+        if (userDoc.exists() && userDoc.data().role === 'admin') {
+            userRole = 'admin';
+        }
+
         const userWithRole: User = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
-          role: 'customer', // or 'admin' based on your logic
+          role: userRole,
         };
         setUser(userWithRole);
       } else {
@@ -69,43 +54,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-    */
   }, []);
-
-  const handleSetUser = (user: User | null) => {
-    if (user) {
-        sessionStorage.setItem('burger-land-user', JSON.stringify(user));
-    } else {
-        sessionStorage.removeItem('burger-land-user');
-    }
-    setUser(user);
-    setLoading(false);
-  }
 
   const signIn = async (email: string, pass: string) => {
     setLoading(true);
-    console.log('Signing in with:', email, pass);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // admin@example.com for admin, any other for customer
-    if (email === 'admin@example.com') {
-      handleSetUser(mockAdmin);
-    } else {
-      handleSetUser({...mockUser, email, displayName: email.split('@')[0] });
-    }
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged will handle setting the user
   };
 
   const signUp = async (email: string, pass: string) => {
     setLoading(true);
-    console.log('Signing up with:', email, pass);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    handleSetUser({...mockUser, email, displayName: email.split('@')[0] });
+    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    const newUser = userCredential.user;
+    // Create a new document in Firestore for the new user
+    await setDoc(doc(db, 'users', newUser.uid), {
+        email: newUser.email,
+        role: 'customer'
+    });
+    // onAuthStateChanged will handle setting the user
   };
 
   const signOut = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    handleSetUser(null);
+    await firebaseSignOut(auth);
+    setUser(null);
+    setLoading(false);
   };
 
   const value = useMemo(() => ({

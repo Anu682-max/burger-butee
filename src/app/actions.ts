@@ -3,7 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { recommendBurgers as recommendBurgersFlow } from '@/ai/flows/menu-recommendation-flow';
-import { getAvailableIngredients, getMockUserOrderHistory, updateOrderStatus as updateStatusInData, addOrder as addOrderToData } from '@/lib/data';
+import { getAvailableIngredients, getMockUserOrderHistory, updateStatusInData, addOrderToData } from '@/lib/data';
 import type { CartItem, OrderStatus } from '@/lib/types';
 
 const MOCK_USER_ID_FOR_AI = 'mock-user-123';
@@ -38,7 +38,7 @@ export async function recommendBurgers(): Promise<string[]> {
  */
 export async function placeOrder(items: CartItem[], totalPrice: number, userId: string, userEmail: string, deliveryAddress: string) {
   try {
-    addOrderToData({ items, totalPrice, userId, userEmail, deliveryAddress });
+    await addOrderToData({ items, totalPrice, userId, userEmail, deliveryAddress });
     revalidatePath('/orders');
     revalidatePath('/admin/orders');
     return { success: true, message: 'Захиалга амжилттай.' };
