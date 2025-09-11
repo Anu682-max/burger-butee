@@ -7,12 +7,12 @@ import { getFirestore } from "firebase/firestore";
 // IMPORTANT: Replace these with your own Firebase project credentials
 // You should use environment variables to store your Firebase config
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "your-api-key",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "your-auth-domain",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "your-project-id",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "your-storage-bucket",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "your-messaging-sender-id",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "your-app-id"
+  projectId: "studio-8825636989-becf3",
+  appId: "1:906350461244:web:540d5e3497cd210ad51e39",
+  storageBucket: "studio-8825636989-becf3.firebasestorage.app",
+  apiKey: "AIzaSyCcL5XzgomW1w7VyiE7VarxolJAtqvCDcA",
+  authDomain: "studio-8825636989-becf3.firebaseapp.com",
+  messagingSenderId: "906350461244"
 };
 
 // Initialize Firebase
