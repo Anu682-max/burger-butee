@@ -14,6 +14,7 @@ import { updateOrderStatus } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Package, ShieldAlert } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 const statusMap: Record<OrderStatus, string> = {
   'Хүлээгдэж буй': 'bg-yellow-500',
@@ -33,21 +34,24 @@ export default function AdminOrdersPage() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || user.role !== 'admin') {
-        router.push('/');
-      } else {
+      if (user && user.role === 'admin') {
+        setIsAuthorized(true);
         const fetchOrders = async () => {
             const fetchedOrders = await getAllOrders();
             setOrders(fetchedOrders);
             setLoading(false);
         }
         fetchOrders();
+      } else {
+        setIsAuthorized(false);
+        setLoading(false);
       }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading]);
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     const result = await updateOrderStatus(orderId, newStatus);
@@ -96,13 +100,13 @@ export default function AdminOrdersPage() {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!isAuthorized) {
     return (
       <div className="container mx-auto flex h-[60vh] flex-col items-center justify-center text-center">
         <ShieldAlert className="h-16 w-16 text-destructive" />
-        <h1 className="mt-4 font-headline text-3xl font-bold">Хандах эрхгүй</h1 >
-        <p className="mt-2 text-muted-foreground">Та энэ хуудсанд хандах эрхгүй байна.</p>
-        <button onClick={() => router.push('/')} className="mt-6">Нүүр хуудас руу буцах</button>
+        <h1 className="mt-4 font-headline text-3xl font-bold">Хандах эрхгүй</h1>
+        <p className="mt-2 text-muted-foreground">Та админ хуудас руу хандах эрхгүй байна. Та админ эрхтэй хэрэглэгчээр нэвтэрнэ үү.</p>
+        <Button onClick={() => router.push('/')} className="mt-6">Нүүр хуудас руу буцах</Button>
       </div>
     );
   }
