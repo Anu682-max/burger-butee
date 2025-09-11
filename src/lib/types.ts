@@ -8,11 +8,16 @@ export interface User {
 
 export type IngredientCategory = 'bun' | 'patty' | 'cheese' | 'topping' | 'sauce';
 
-export interface Ingredient {
+// Stored in Firestore, without the icon component
+export interface IngredientInfo {
   id: string;
   name: string;
   category: IngredientCategory;
   price: number;
+}
+
+
+export interface Ingredient extends IngredientInfo {
   icon: React.ComponentType<{ className?: string }>;
 }
 
@@ -29,11 +34,12 @@ export interface OrderItem {
   name: string;
   quantity: number;
   price: number;
-  ingredients?: Ingredient[];
+  ingredients?: IngredientInfo[]; // Use IngredientInfo for Firestore
 }
 
 export interface CartItem extends OrderItem {
   image: string;
+  ingredients?: Ingredient[]; // Use full Ingredient for UI
 }
 
 export type OrderStatus = 'Хүлээгдэж буй' | 'Бэлтгэгдэж буй' | 'Хүргэлтэнд гарсан' | 'Хүргэгдсэн' | 'Цуцлагдсан';

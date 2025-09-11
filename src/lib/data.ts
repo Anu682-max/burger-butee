@@ -1,11 +1,11 @@
 
-import type { Burger, Ingredient, Order, OrderStatus, CartItem, OrderItem } from '@/lib/types';
+import type { Burger, Ingredient, Order, OrderStatus, CartItem, OrderItem, IngredientInfo } from '@/lib/types';
 import { Beef, DollarSign } from 'lucide-react';
 import { BunIcon, LettuceIcon, OnionIcon, PicklesIcon, SauceIcon, TomatoIcon } from '@/components/icons';
-import { collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
 
-// --- MOCK INGREDIENTS ---
+// --- INGREDIENTS ---
 export const ingredients: Ingredient[] = [
   { id: 'bun-classic', name: 'Сонгодог булочка', category: 'bun', price: 1000, icon: BunIcon },
   { id: 'bun-sesame', name: 'Гүнждийн үртэй булочка', category: 'bun', price: 1200, icon: BunIcon },
@@ -26,7 +26,7 @@ export const getIngredients = () => ingredients;
 export const getAvailableIngredients = () => JSON.stringify(ingredients.map(i => i.name));
 
 
-// --- MOCK BURGERS ---
+// --- MENU BURGERS ---
 const burgers: Burger[] = [
   { id: '1', name: 'Сонгодог Чизбургер', ingredients: ['bun-classic', 'patty-beef', 'cheese-cheddar', 'topping-pickles', 'sauce-ketchup'], price: 8500, imgId: 'classic-cheeseburger' },
   { id: '2', name: 'Бэкон Делюкс', ingredients: ['bun-sesame', 'patty-beef', 'cheese-cheddar', 'topping-lettuce', 'topping-tomato', 'topping-onion'], price: 12500, imgId: 'bacon-deluxe' },
@@ -39,22 +39,24 @@ const burgers: Burger[] = [
 export const getMenuBurgers = () => burgers;
 
 
-let orders: Order[] = [];
-
-// --- REAL FIREBASE ORDERS ---
+// --- FIREBASE ORDERS ---
 
 export const addOrderToData = async (
     { items, totalPrice, userId, userEmail, deliveryAddress }: 
     { items: CartItem[], totalPrice: number, userId: string, userEmail: string, deliveryAddress: string }
 ) => {
-    const orderItems: OrderItem[] = items.map(cartItem => ({
-        id: cartItem.id,
-        name: cartItem.name,
-        quantity: cartItem.quantity,
-        price: cartItem.price,
-        // Firebase doesn't like storing functions/React components
-        ingredients: cartItem.ingredients?.map(({icon, ...rest}) => rest),
-    }));
+    const orderItems: OrderItem[] = items.map(cartItem => {
+        const item: OrderItem = {
+            id: cartItem.id,
+            name: cartItem.name,
+            quantity: cartItem.quantity,
+            price: cartItem.price,
+        };
+        if (cartItem.ingredients) {
+            item.ingredients = cartItem.ingredients.map(({icon, ...rest}) => rest)
+        }
+        return item;
+    });
 
     const newOrder = {
         userId,
@@ -62,7 +64,7 @@ export const addOrderToData = async (
         items: orderItems,
         totalPrice,
         status: 'Хүлээгдэж буй',
-        createdAt: new Date(),
+        createdAt: Timestamp.now(),
         deliveryAddress: deliveryAddress,
     };
     
@@ -71,6 +73,7 @@ export const addOrderToData = async (
 
 
 export const getUserOrders = async (userId: string): Promise<Order[]> => {
+    if (!userId) return [];
     const q = query(collection(db, "orders"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
     const orders: Order[] = [];
@@ -79,7 +82,7 @@ export const getUserOrders = async (userId: string): Promise<Order[]> => {
         orders.push({
             id: doc.id,
             ...data,
-            createdAt: data.createdAt.toDate(),
+            createdAt: (data.createdAt as Timestamp).toDate(),
         } as Order);
     });
     return orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -93,7 +96,7 @@ export const getAllOrders = async (): Promise<Order[]> => {
         orders.push({
             id: doc.id,
             ...data,
-            createdAt: data.createdAt.toDate(),
+            createdAt: (data.createdAt as Timestamp).toDate(),
         } as Order);
     });
     return orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -101,7 +104,6 @@ export const getAllOrders = async (): Promise<Order[]> => {
 
 
 export const updateStatusInData = async (orderId: string, status: OrderStatus): Promise<void> => {
-  console.log(`Updating order ${orderId} to status ${status}`);
   const orderRef = doc(db, "orders", orderId);
   await updateDoc(orderRef, {
     status: status
@@ -110,18 +112,11 @@ export const updateStatusInData = async (orderId: string, status: OrderStatus): 
 
 
 // --- MOCK Functions (for AI) ---
-// This part can remain as it is if the AI recommendation feature is based on mock data.
-// If it needs real data, it should be updated to fetch from Firebase as well.
-const mockOrders: Order[] = [
-  { id: 'ORD001', userId: 'mock-user-123', userEmail: 'test@example.com', items: [{ id: '1', name: 'Сонгодог Чизбургер', quantity: 2, price: 8500 }], totalPrice: 17000, status: 'Хүргэгдсэн', createdAt: new Date(2023, 10, 5) },
-  { id: 'ORD002', userId: 'user2', userEmail: 'user2@example.com', items: [{ id: '2', name: 'Бэкон Делюкс', quantity: 1, price: 12500 }, { id: '5', name: 'Цагаан хоолтны дилайт', quantity: 1, price: 9000 }], totalPrice: 21500, status: 'Хүргэгдсэн', createdAt: new Date(2023, 10, 4) },
-  { id: 'ORD003', userId: 'mock-user-123', userEmail: 'test@example.com', items: [{ id: '3', name: 'Дабль Трабль', quantity: 1, price: 15000 }], totalPrice: 15000, status: 'Хүргэлтэнд гарсан', createdAt: new Date() },
-  { id: 'ORD004', userId: 'user3', userEmail: 'user3@example.com', items: [{ id: '1', name: 'Сонгодог Чизбургер', quantity: 1, price: 8500 }], totalPrice: 8500, status: 'Бэлтгэгдэж буй', createdAt: new Date() },
-  { id: 'ORD005', userId: 'mock-user-123', userEmail: 'test@example.com', items: [{ id: '4', name: 'Халуун ногоотой Халапено', quantity: 1, price: 11000 }], totalPrice: 11000, status: 'Хүлээгдэж буй', createdAt: new Date() },
-];
+const mockOrderHistoryForAI = {
+    'mock-user-123': ['Сонгодог Чизбургер', 'Дабль Трабль', 'Халуун ногоотой Халапено']
+};
 
 export const getMockUserOrderHistory = (userId: string) => {
-  const userOrders = mockOrders.filter(order => order.userId === userId);
-  const history = userOrders.flatMap(order => order.items.map(item => item.name));
+  const history = mockOrderHistoryForAI[userId as keyof typeof mockOrderHistoryForAI] || [];
   return JSON.stringify(history);
 }
