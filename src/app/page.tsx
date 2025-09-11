@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, ChefHat } from 'lucide-react';
-import { getMenuBurgers } from '@/lib/data';
+import { getMenuBurgers } from '@/lib/menu-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { recommendBurgers } from '@/app/actions';
 import { AddToCartButton } from '@/components/add-to-cart-button';

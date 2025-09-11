@@ -4,16 +4,14 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Your web app's Firebase configuration
-// IMPORTANT: Replace these with your own Firebase project credentials
-// You should use environment variables to store your Firebase config
+// Your web app's Firebase configuration for CLIENT-SIDE usage
 const firebaseConfig = {
-  apiKey: "AIzaSyAqYSQ4AJiqxGlHIQi4eeQrRf446ff-z1A",
-  authDomain: "burger-butee-6a064.firebaseapp.com",
-  projectId: "burger-butee-6a064",
-  storageBucket: "burger-butee-6a064.firebasestorage.app",
-  messagingSenderId: "896887483592",
-  appId: "1:896887483592:web:7d1789ac33d688994ac9fd"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
 // Initialize Firebase

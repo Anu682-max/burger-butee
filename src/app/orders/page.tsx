@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getUserOrders } from '@/lib/data';
 import type { Order, OrderStatus } from '@/lib/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +11,8 @@ import { History, ShoppingBag } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { getUserOrders } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const statusMap: Record<OrderStatus, string> = {
   'Хүлээгдэж буй': 'border-yellow-500 text-yellow-500',
@@ -29,19 +30,31 @@ export default function OrdersPage() {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchOrders = async () => {
         if (!authLoading && user) {
-            const userOrders = await getUserOrders(user.uid);
-            setOrders(userOrders);
-            setLoading(false);
+            setLoading(true);
+            try {
+                const userOrders = await getUserOrders(user.uid);
+                setOrders(userOrders);
+            } catch(error) {
+                console.error("Failed to fetch user orders:", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Алдаа',
+                    description: 'Захиалга татахад алдаа гарлаа.',
+                });
+            } finally {
+                setLoading(false);
+            }
         } else if (!authLoading && !user) {
             setLoading(false);
         }
     }
     fetchOrders();
-  }, [user, authLoading]);
+  }, [user, authLoading, toast]);
 
   if (authLoading || loading) {
     return (

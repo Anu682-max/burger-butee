@@ -11,8 +11,9 @@ import {
 } from 'react';
 import type { User } from '@/lib/types';
 import { onAuthStateChanged, signOut as firebaseSignOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, type User as FirebaseUser } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
+import { auth as clientAuth } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 
 interface AuthContextType {
@@ -30,15 +31,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+    const unsubscribe = onAuthStateChanged(clientAuth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        let userRole: 'customer' | 'admin' = 'customer';
-        if (userDoc.exists() && userDoc.data().role === 'admin') {
-            userRole = 'admin';
-        }
+        // To get the custom claims, we need to force a token refresh.
+        await firebaseUser.getIdToken(true);
+        const idTokenResult = await firebaseUser.getIdTokenResult();
+        const userRole = idTokenResult.claims.role === 'admin' ? 'admin' : 'customer';
 
         const userWithRole: User = {
           uid: firebaseUser.uid,
@@ -58,25 +56,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, pass: string) => {
     setLoading(true);
-    await signInWithEmailAndPassword(auth, email, pass);
+    await signInWithEmailAndPassword(clientAuth, email, pass);
     // onAuthStateChanged will handle setting the user
   };
 
   const signUp = async (email: string, pass: string) => {
     setLoading(true);
-    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    const userCredential = await createUserWithEmailAndPassword(clientAuth, email, pass);
     const newUser = userCredential.user;
-    // Create a new document in Firestore for the new user
+    // We set the user role via a server-side action or cloud function
+    // For now, let's create the user doc, but custom claims are preferred.
     await setDoc(doc(db, 'users', newUser.uid), {
         email: newUser.email,
-        role: 'customer'
+        role: 'customer' // All new users are customers by default
     });
-    // onAuthStateChanged will handle setting the user
+    // onAuthStateChanged will handle setting the user, but claims might not be immediately available.
   };
 
   const signOut = async () => {
     setLoading(true);
-    await firebaseSignOut(auth);
+    await firebaseSignOut(clientAuth);
     setUser(null);
     setLoading(false);
   };

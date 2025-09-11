@@ -1,0 +1,45 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if a user is an admin
+    function isAdmin(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+             get(/databases/$(database)/documents/users/$(userId)).data.role == 'admin';
+    }
+
+    // Rules for the 'orders' collection
+    match /orders/{orderId} {
+      // CREATE: Logged-in users can create their own orders.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // READ: 
+      // - A user can read their own order.
+      // - An admin can read any order.
+      allow get: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin(request.auth.uid));
+      allow list: if request.auth != null && isAdmin(request.auth.uid); // Admins can list all orders. Regular users list via server-side action.
+
+      // UPDATE: Only admins can update the status of an order.
+      allow update: if request.auth != null && isAdmin(request.auth.uid) && request.resource.data.keys().hasOnly(['status']);
+      
+      // DELETE: Nobody can delete orders.
+      allow delete: if false;
+    }
+
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      // READ: A user can read their own document. Admins can read any user document.
+      allow get: if request.auth != null && (request.auth.uid == userId || isAdmin(request.auth.uid));
+      
+      // LIST: Only admins can list all users.
+      allow list: if request.auth != null && isAdmin(request.auth.uid);
+
+      // CREATE: Allow user creation (handled by sign-up logic).
+      allow create: if request.auth != null;
+      
+      // UPDATE, DELETE: Disallow for now to prevent users from changing their own role.
+      allow update, delete: if false;
+    }
+  }
+}

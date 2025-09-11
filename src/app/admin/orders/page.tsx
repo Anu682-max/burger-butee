@@ -4,13 +4,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { getAllOrders } from '@/lib/data';
 import type { Order, OrderStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { updateOrderStatus } from '@/app/actions';
+import { updateOrderStatus, getAllOrders } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Package, ShieldAlert } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -41,9 +40,20 @@ export default function AdminOrdersPage() {
       if (user && user.role === 'admin') {
         setIsAuthorized(true);
         const fetchOrders = async () => {
-            const fetchedOrders = await getAllOrders();
-            setOrders(fetchedOrders);
-            setLoading(false);
+            setLoading(true);
+            try {
+              const fetchedOrders = await getAllOrders();
+              setOrders(fetchedOrders);
+            } catch (error) {
+              console.error("Failed to fetch orders:", error);
+              toast({
+                variant: 'destructive',
+                title: 'Алдаа',
+                description: 'Захиалга татахад алдаа гарлаа.',
+              });
+            } finally {
+              setLoading(false);
+            }
         }
         fetchOrders();
       } else {
@@ -51,7 +61,7 @@ export default function AdminOrdersPage() {
         setLoading(false);
       }
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, toast]);
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     const result = await updateOrderStatus(orderId, newStatus);

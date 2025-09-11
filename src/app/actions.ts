@@ -3,8 +3,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { recommendBurgers as recommendBurgersFlow } from '@/ai/flows/menu-recommendation-flow';
-import { getAvailableIngredients, getMockUserOrderHistory, updateStatusInData, addOrderToData } from '@/lib/data';
-import type { CartItem, OrderStatus } from '@/lib/types';
+import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory } from '@/lib/db';
+import { getAvailableIngredients } from '@/lib/menu-data';
+import type { CartItem, Order, OrderStatus } from '@/lib/types';
+import { auth } from '@/lib/firebase-admin';
 
 const MOCK_USER_ID_FOR_AI = 'mock-user-123';
 
@@ -38,7 +40,7 @@ export async function recommendBurgers(): Promise<string[]> {
  */
 export async function placeOrder(items: CartItem[], totalPrice: number, userId: string, userEmail: string, deliveryAddress: string) {
   try {
-    await addOrderToData({ items, totalPrice, userId, userEmail, deliveryAddress });
+    await addOrderToDataInDb({ items, totalPrice, userId, userEmail, deliveryAddress });
     revalidatePath('/orders');
     revalidatePath('/admin/orders');
     return { success: true, message: 'Захиалга амжилттай.' };
@@ -63,4 +65,55 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     console.error('Error updating order status:', error);
     return { success: false, message: 'Захиалгын төлөв шинэчлэхэд алдаа гарлаа.' };
   }
+}
+
+/**
+ * Fetches all orders for the admin page.
+ */
+export async function getAllOrders(): Promise<Order[]> {
+    return await getAllOrdersFromDb();
+}
+
+/**
+ * Fetches orders for a specific user.
+ * @param userId - The ID of the user.
+ */
+export async function getUserOrders(userId: string): Promise<Order[]> {
+    return await getUserOrdersFromDb(userId);
+}
+
+/**
+ * Fetches user data including their role.
+ * @param uid - The user's unique ID.
+ */
+export async function getUserData(uid: string): Promise<{ role: 'customer' | 'admin' } | null> {
+    try {
+        const userRecord = await auth.getUser(uid);
+        const role = userRecord.customClaims?.role === 'admin' ? 'admin' : 'customer';
+
+        if (role === 'admin') {
+            return { role: 'admin' };
+        }
+        
+        // Fallback to check Firestore if claims are not set
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists && userDoc.data()?.role === 'admin') {
+            return { role: 'admin' };
+        }
+        
+        return { role: 'customer' };
+
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+         // Gracefully fallback to checking firestore
+        try {
+            const userDoc = await db.collection('users').doc(uid).get();
+            if (userDoc.exists && userDoc.data()?.role === 'admin') {
+                return { role: 'admin' };
+            }
+        } catch (dbError) {
+             console.error("Error fetching user data from firestore:", dbError);
+        }
+        return null;
+    }
 }

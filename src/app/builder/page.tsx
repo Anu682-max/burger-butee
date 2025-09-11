@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { getIngredients } from '@/lib/data';
+import { getIngredients } from '@/lib/menu-data';
 import type { Ingredient, IngredientCategory } from '@/lib/types';
 import { useCart } from '@/contexts/cart-context';
 import { useToast } from '@/hooks/use-toast';

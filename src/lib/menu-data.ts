@@ -1,9 +1,6 @@
-
-import type { Burger, Ingredient, Order, OrderStatus, CartItem, OrderItem, IngredientInfo } from '@/lib/types';
+import type { Burger, Ingredient } from '@/lib/types';
 import { Beef, DollarSign } from 'lucide-react';
 import { BunIcon, LettuceIcon, OnionIcon, PicklesIcon, SauceIcon, TomatoIcon } from '@/components/icons';
-import { collection, addDoc, getDocs, query, where, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from './firebase';
 
 // --- INGREDIENTS ---
 export const ingredients: Ingredient[] = [
@@ -37,86 +34,3 @@ const burgers: Burger[] = [
 ];
 
 export const getMenuBurgers = () => burgers;
-
-
-// --- FIREBASE ORDERS ---
-
-export const addOrderToData = async (
-    { items, totalPrice, userId, userEmail, deliveryAddress }: 
-    { items: CartItem[], totalPrice: number, userId: string, userEmail: string, deliveryAddress: string }
-) => {
-    const orderItems: OrderItem[] = items.map(cartItem => {
-        const item: OrderItem = {
-            id: cartItem.id,
-            name: cartItem.name,
-            quantity: cartItem.quantity,
-            price: cartItem.price,
-        };
-        if (cartItem.ingredients) {
-            item.ingredients = cartItem.ingredients.map(({icon, ...rest}) => rest)
-        }
-        return item;
-    });
-
-    const newOrder = {
-        userId,
-        userEmail,
-        items: orderItems,
-        totalPrice,
-        status: 'Хүлээгдэж буй',
-        createdAt: Timestamp.now(),
-        deliveryAddress: deliveryAddress,
-    };
-    
-    await addDoc(collection(db, "orders"), newOrder);
-}
-
-
-export const getUserOrders = async (userId: string): Promise<Order[]> => {
-    if (!userId) return [];
-    const q = query(collection(db, "orders"), where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
-    const orders: Order[] = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        orders.push({
-            id: doc.id,
-            ...data,
-            createdAt: (data.createdAt as Timestamp).toDate(),
-        } as Order);
-    });
-    return orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-};
-
-export const getAllOrders = async (): Promise<Order[]> => {
-    const querySnapshot = await getDocs(collection(db, "orders"));
-    const orders: Order[] = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        orders.push({
-            id: doc.id,
-            ...data,
-            createdAt: (data.createdAt as Timestamp).toDate(),
-        } as Order);
-    });
-    return orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-};
-
-
-export const updateStatusInData = async (orderId: string, status: OrderStatus): Promise<void> => {
-  const orderRef = doc(db, "orders", orderId);
-  await updateDoc(orderRef, {
-    status: status
-  });
-};
-
-
-// --- MOCK Functions (for AI) ---
-const mockOrderHistoryForAI = {
-    'mock-user-123': ['Сонгодог Чизбургер', 'Дабль Трабль', 'Халуун ногоотой Халапено']
-};
-
-export const getMockUserOrderHistory = (userId: string) => {
-  const history = mockOrderHistoryForAI[userId as keyof typeof mockOrderHistoryForAI] || [];
-  return JSON.stringify(history);
-}

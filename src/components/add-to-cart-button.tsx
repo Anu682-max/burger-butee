@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import type { Burger } from '@/lib/types';
-import { getIngredients } from '@/lib/data';
+import { getIngredients } from '@/lib/menu-data';
 import { ShoppingCart } from 'lucide-react';
 
 const allIngredients = getIngredients();

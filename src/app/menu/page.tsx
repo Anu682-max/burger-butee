@@ -1,6 +1,6 @@
 
 import Image from 'next/image';
-import { getMenuBurgers } from '@/lib/data';
+import { getMenuBurgers } from '@/lib/menu-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddToCartButton } from '@/components/add-to-cart-button';
