@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-burger",
+      "description": "A large, juicy gourmet burger featured in the hero section.",
+      "imageUrl": "https://picsum.photos/seed/100/1200/800",
+      "imageHint": "gourmet burger"
+    },
+    {
+      "id": "classic-cheeseburger",
+      "description": "A classic cheeseburger with lettuce, tomato, and cheese.",
+      "imageUrl": "https://picsum.photos/seed/101/400/300",
+      "imageHint": "cheeseburger"
+    },
+    {
+      "id": "bacon-deluxe",
+      "description": "A deluxe burger loaded with crispy bacon.",
+      "imageUrl": "https://picsum.photos/seed/102/400/300",
+      "imageHint": "bacon burger"
+    },
+    {
+      "id": "double-trouble",
+      "description": "A massive burger with two beef patties.",
+      "imageUrl": "https://picsum.photos/seed/103/400/300",
+      "imageHint": "double burger"
+    },
+    {
+      "id": "spicy-jalapeno",
+      "description": "A spicy burger with jalapenos and pepper jack cheese.",
+      "imageUrl": "https://picsum.photos/seed/104/400/300",
+      "imageHint": "spicy burger"
+    },
+    {
+      "id": "veggie-delight",
+      "description": "A delicious vegetarian burger with a plant-based patty.",
+      "imageUrl": "https://picsum.photos/seed/105/400/300",
+      "imageHint": "veggie burger"
+    },
+    {
+      "id": "bbq-rancher",
+      "description": "A burger with BBQ sauce, onion rings, and cheddar cheese.",
+      "imageUrl": "https://picsum.photos/seed/106/400/300",
+      "imageHint": "bbq burger"
+    }
+  ]
 }
