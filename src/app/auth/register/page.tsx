@@ -42,13 +42,21 @@ export default function RegisterPage() {
       await signUp(values.email, values.password);
       toast({ title: 'Амжилттай бүртгүүллээ.' });
       router.push('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Бүртгүүлэхэд алдаа гарлаа',
-        description: 'Дахин оролдоно уу.',
-      });
+      if (error.code === 'auth/email-already-in-use') {
+         toast({
+            variant: 'destructive',
+            title: 'Бүртгэл амжилтгүй',
+            description: 'Энэ и-мэйл хаяг бүртгэлтэй байна. Та нэвтрэх хэсгийг ашиглана уу.',
+         });
+      } else {
+        toast({
+            variant: 'destructive',
+            title: 'Бүртгүүлэхэд алдаа гарлаа',
+            description: 'Дахин оролдоно уу.',
+        });
+      }
     }
   }
 
