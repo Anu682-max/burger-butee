@@ -6,7 +6,7 @@ import { recommendBurgers as recommendBurgersFlow } from '@/ai/flows/menu-recomm
 import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory } from '@/lib/db';
 import { getAvailableIngredients } from '@/lib/menu-data';
 import type { CartItem, Order, OrderStatus } from '@/lib/types';
-import { auth } from '@/lib/firebase-admin';
+import { auth, db } from '@/lib/firebase-admin';
 
 const MOCK_USER_ID_FOR_AI = 'mock-user-123';
 
@@ -15,7 +15,7 @@ const MOCK_USER_ID_FOR_AI = 'mock-user-123';
  */
 export async function recommendBurgers(): Promise<string[]> {
   try {
-    const orderHistory = getMockUserOrderHistory(MOCK_USER_ID_FOR_AI);
+    const orderHistory = await getMockUserOrderHistory(MOCK_USER_ID_FOR_AI);
     const availableIngredients = getAvailableIngredients();
 
     const result = await recommendBurgersFlow({
@@ -71,6 +71,8 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
  * Fetches all orders for the admin page.
  */
 export async function getAllOrders(): Promise<Order[]> {
+    // Temp fix: return empty array to avoid admin SDK error
+    if (!auth) return [];
     return await getAllOrdersFromDb();
 }
 
@@ -79,6 +81,8 @@ export async function getAllOrders(): Promise<Order[]> {
  * @param userId - The ID of the user.
  */
 export async function getUserOrders(userId: string): Promise<Order[]> {
+    // Temp fix: return empty array to avoid admin SDK error
+    if (!auth) return [];
     return await getUserOrdersFromDb(userId);
 }
 
@@ -87,33 +91,21 @@ export async function getUserOrders(userId: string): Promise<Order[]> {
  * @param uid - The user's unique ID.
  */
 export async function getUserData(uid: string): Promise<{ role: 'customer' | 'admin' } | null> {
+    // Temp fix: return null to avoid admin SDK error
+    if (!auth || !db) {
+        console.warn("Firebase Admin not initialized, returning null for user data.");
+        return null;
+    }
+    
     try {
-        const userRecord = await auth.getUser(uid);
-        const role = userRecord.customClaims?.role === 'admin' ? 'admin' : 'customer';
-
-        if (role === 'admin') {
-            return { role: 'admin' };
-        }
-        
-        // Fallback to check Firestore if claims are not set
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data()?.role === 'admin') {
             return { role: 'admin' };
         }
-        
         return { role: 'customer' };
 
     } catch (error) {
-        console.error("Error fetching user data:", error);
-         // Gracefully fallback to checking firestore
-        try {
-            const userDoc = await db.collection('users').doc(uid).get();
-            if (userDoc.exists && userDoc.data()?.role === 'admin') {
-                return { role: 'admin' };
-            }
-        } catch (dbError) {
-             console.error("Error fetching user data from firestore:", dbError);
-        }
+        console.error("Error fetching user data from firestore:", error);
         return null;
     }
 }
