@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
-import { LogOut, Package, User, Utensils } from 'lucide-react';
+import { LogOut, Package, User, Utensils, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -61,6 +61,8 @@ export function UserNav() {
           </DropdownMenuItem>
           {user.role === 'admin' && (
             <>
+             <DropdownMenuSeparator />
+             <DropdownMenuLabel>Админ</DropdownMenuLabel>
              <DropdownMenuItem asChild>
                 <Link href="/admin/orders">
                     <User className="mr-2 h-4 w-4" />
@@ -71,6 +73,12 @@ export function UserNav() {
                 <Link href="/admin/menu">
                     <Utensils className="mr-2 h-4 w-4" />
                     <span>Меню</span>
+                </Link>
+             </DropdownMenuItem>
+             <DropdownMenuItem asChild>
+                <Link href="/admin/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Тохиргоо</span>
                 </Link>
              </DropdownMenuItem>
             </>

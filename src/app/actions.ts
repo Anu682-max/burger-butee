@@ -3,7 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { recommendBurgers as recommendBurgersFlow } from '@/ai/flows/menu-recommendation-flow';
-import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory, getAllBurgers as getAllBurgersFromDb, updateBurgerInDb } from '@/lib/db';
+import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory, getAllBurgers as getAllBurgersFromDb, updateBurgerInDb, getHeroImageFromDb, setHeroImageInDb } from '@/lib/db';
 import { getAvailableIngredients } from '@/lib/menu-data';
 import type { Burger, CartItem, Order, OrderStatus } from '@/lib/types';
 import { auth, db, storage } from '@/lib/firebase-admin';
@@ -173,5 +173,51 @@ export async function updateBurger(formData: FormData): Promise<{ success: boole
   } catch (error) {
     console.error("Error updating burger:", error);
     return { success: false, message: "Бургер шинэчлэхэд алдаа гарлаа." };
+  }
+}
+
+/**
+ * Fetches the hero image URL from settings.
+ */
+export async function getHeroImage(): Promise<string> {
+    if (!db) {
+        console.warn("Firebase Admin not initialized. Returning default hero image.");
+        return "https://picsum.photos/seed/hero/1200/800";
+    }
+    return await getHeroImageFromDb();
+}
+
+/**
+ * Updates the hero image.
+ * @param formData - The form data containing the new hero image.
+ */
+export async function updateHeroImage(formData: FormData): Promise<{ success: boolean; message?: string; imageUrl?: string }> {
+  if (!auth || !storage) {
+    return { success: false, message: "Сервер бэлэн биш байна." };
+  }
+
+  const imageFile = formData.get('heroImage') as File;
+
+  if (!imageFile) {
+    return { success: false, message: "Зураг дутуу байна." };
+  }
+
+  try {
+    // Upload image to Firebase Storage
+    const storageRef = ref(storage, `settings/heroImage-${Date.now()}-${imageFile.name}`);
+    const snapshot = await uploadBytes(storageRef, imageFile);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    // Update settings in Firestore
+    await setHeroImageInDb(downloadURL);
+    
+    revalidatePath('/');
+    revalidatePath('/admin/settings');
+
+    return { success: true, imageUrl: downloadURL };
+
+  } catch (error) {
+    console.error("Error updating hero image:", error);
+    return { success: false, message: "Нүүр хуудасны зураг шинэчлэхэд алдаа гарлаа." };
   }
 }

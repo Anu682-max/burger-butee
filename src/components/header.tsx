@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Salad, Utensils } from 'lucide-react';
+import { Menu, Salad, Utensils, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { UserNav } from '@/components/user-nav';
 import { CartIcon } from '@/components/cart-icon';
@@ -34,14 +34,18 @@ export default function Header() {
             </Link>
           ))}
           {user?.role === 'admin' && (
-            <>
+            <div className="flex items-center gap-6">
+             <div className="h-6 w-px bg-border" />
              <Link href="/admin/orders" className="text-sm font-medium text-primary transition-colors hover:text-primary/80">
                 Захиалга
              </Link>
              <Link href="/admin/menu" className="text-sm font-medium text-primary transition-colors hover:text-primary/80">
                 Меню
              </Link>
-            </>
+             <Link href="/admin/settings" className="text-sm font-medium text-primary transition-colors hover:text-primary/80">
+                Тохиргоо
+             </Link>
+            </div>
           )}
         </nav>
 
@@ -79,6 +83,9 @@ export default function Header() {
                         </Link>
                         <Link href="/admin/menu" className="font-semibold text-primary hover:text-primary/80 flex items-center gap-2">
                            <Utensils className="h-5 w-5" /> Меню удирдлага
+                        </Link>
+                         <Link href="/admin/settings" className="font-semibold text-primary hover:text-primary/80 flex items-center gap-2">
+                           <Settings className="h-5 w-5" /> Тохиргоо
                         </Link>
                     </div>
                   )}

@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, addDoc, getDocs, query, where, updateDoc, doc, Timestamp, orderBy, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc, Timestamp, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { db } from './firebase-admin';
 import type { Order, OrderStatus, CartItem, OrderItem, Burger } from '@/lib/types';
 
@@ -12,6 +12,10 @@ export const addOrderToData = async (
     { items, totalPrice, userId, userEmail, deliveryAddress }:
     { items: CartItem[], totalPrice: number, userId: string, userEmail: string, deliveryAddress: string }
 ) => {
+    if (!db) {
+        console.warn('DB not available, skipping addOrderToData');
+        return;
+    }
     const orderItems: OrderItem[] = items.map(cartItem => {
         const item: OrderItem = {
             id: cartItem.id,
@@ -41,7 +45,7 @@ export const addOrderToData = async (
 
 
 export const getUserOrders = async (userId: string): Promise<Order[]> => {
-    if (!userId) return [];
+    if (!userId || !db) return [];
     const q = query(collection(db, "orders"), where("userId", "==", userId), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
     const orders: Order[] = [];
@@ -57,6 +61,7 @@ export const getUserOrders = async (userId: string): Promise<Order[]> => {
 };
 
 export const getAllOrders = async (): Promise<Order[]> => {
+    if (!db) return [];
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
     const orders: Order[] = [];
@@ -73,6 +78,7 @@ export const getAllOrders = async (): Promise<Order[]> => {
 
 
 export const updateStatusInData = async (orderId: string, status: OrderStatus): Promise<void> => {
+  if (!db) return;
   const orderRef = doc(db, "orders", orderId);
   await updateDoc(orderRef, {
     status: status
@@ -81,6 +87,7 @@ export const updateStatusInData = async (orderId: string, status: OrderStatus): 
 
 // --- FIREBASE BURGERS (SERVER-SIDE) ---
 export const getAllBurgers = async (): Promise<Burger[]> => {
+    if (!db) return [];
     const q = query(collection(db, "burgers"), orderBy("name"));
     const querySnapshot = await getDocs(q);
     const burgers: Burger[] = [];
@@ -94,10 +101,34 @@ export const getAllBurgers = async (): Promise<Burger[]> => {
 }
 
 export const updateBurgerInDb = async (burgerId: string, data: Partial<Burger>): Promise<Burger> => {
+    if (!db) throw new Error("Database not available");
     const burgerRef = doc(db, "burgers", burgerId);
     await updateDoc(burgerRef, data);
     const updatedDoc = await getDoc(burgerRef);
     return { id: updatedDoc.id, ...updatedDoc.data() } as Burger;
+}
+
+
+// --- FIREBASE SETTINGS (SERVER-SIDE) ---
+export const getHeroImageFromDb = async (): Promise<string> => {
+    const defaultImage = "https://picsum.photos/seed/hero/1200/800";
+    if (!db) return defaultImage;
+    
+    try {
+        const settingsDoc = await getDoc(doc(db, "settings", "site"));
+        if (settingsDoc.exists() && settingsDoc.data().heroImageUrl) {
+            return settingsDoc.data().heroImageUrl;
+        }
+        return defaultImage;
+    } catch(error) {
+        console.error("Error fetching hero image:", error);
+        return defaultImage;
+    }
+}
+
+export const setHeroImageInDb = async (imageUrl: string): Promise<void> => {
+    if (!db) throw new Error("Database not available");
+    await setDoc(doc(db, "settings", "site"), { heroImageUrl: imageUrl });
 }
 
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, ChefHat } from 'lucide-react';
-import { getMenuBurgers, recommendBurgers } from '@/app/actions';
+import { getMenuBurgers, recommendBurgers, getHeroImage } from '@/app/actions';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 
 async function RecommendedBurgers() {
@@ -65,9 +65,7 @@ async function RecommendedBurgers() {
 }
 
 export default async function Home() {
-  const burgers = await getMenuBurgers();
-  const heroBurger = burgers.find(b => b.id === 'bacon-deluxe') || burgers[0];
-  const heroImage = heroBurger?.imageUrl || "https://picsum.photos/seed/hero/1200/800";
+  const heroImage = await getHeroImage();
 
   return (
     <div className="flex flex-col">
