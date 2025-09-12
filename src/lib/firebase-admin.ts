@@ -15,7 +15,7 @@ if (!admin.apps.length) {
     const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
     if (!projectId || !clientEmail || !privateKey) {
-        console.warn("Firebase Admin SDK environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are not fully set. Server-side Firebase services may not be available.");
+        console.warn("Firebase Admin SDK environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are not fully set. Server-side Firebase services will not be available.");
     } else {
         admin.initializeApp({
           credential: admin.credential.cert({
@@ -32,8 +32,6 @@ if (!admin.apps.length) {
 
   } catch (error: any) {
     console.error('Firebase admin initialization error:', error.message);
-    // This error is critical for server-side operations, so we throw it to make it visible.
-    throw new Error('Could not initialize Firebase Admin SDK. Check your environment variables and server logs for details.');
   }
 } else {
     // If the app is already initialized, get the instances

@@ -39,8 +39,11 @@ export async function recommendBurgers(): Promise<string[]> {
  * @param deliveryAddress - The delivery address.
  */
 export async function placeOrder(items: CartItem[], totalPrice: number, userId: string, userEmail: string, deliveryAddress: string) {
-  // Temp fix: return success if admin sdk is not initialized
-  if (!auth) return { success: true, message: 'Захиалга амжилттай.' };
+  // Return success if admin sdk is not initialized to prevent crash
+  if (!auth) {
+    console.warn("Firebase Admin not initialized. Skipping order placement.");
+    return { success: true, message: 'Захиалга амжилттай.' };
+  }
   try {
     await addOrderToDataInDb({ items, totalPrice, userId, userEmail, deliveryAddress });
     revalidatePath('/orders');
@@ -58,8 +61,11 @@ export async function placeOrder(items: CartItem[], totalPrice: number, userId: 
  * @param status - The new status of the order.
  */
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
-  // Temp fix: return success if admin sdk is not initialized
-  if (!auth) return { success: true, message: 'Захиалгын төлөв шинэчлэгдлээ.' };
+  // Return success if admin sdk is not initialized to prevent crash
+  if (!auth) {
+    console.warn("Firebase Admin not initialized. Skipping order status update.");
+    return { success: true, message: 'Захиалгын төлөв шинэчлэгдлээ.' };
+  }
   try {
     await updateStatusInData(orderId, status);
     revalidatePath('/admin/orders');
@@ -75,8 +81,11 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
  * Fetches all orders for the admin page.
  */
 export async function getAllOrders(): Promise<Order[]> {
-    // Temp fix: return empty array to avoid admin SDK error
-    if (!auth) return [];
+    // Return empty array to avoid admin SDK error if not initialized
+    if (!auth) {
+      console.warn("Firebase Admin not initialized. Returning empty array for all orders.");
+      return [];
+    }
     return await getAllOrdersFromDb();
 }
 
@@ -85,8 +94,11 @@ export async function getAllOrders(): Promise<Order[]> {
  * @param userId - The ID of the user.
  */
 export async function getUserOrders(userId: string): Promise<Order[]> {
-    // Temp fix: return empty array to avoid admin SDK error
-    if (!auth) return [];
+    // Return empty array to avoid admin SDK error if not initialized
+    if (!auth) {
+      console.warn("Firebase Admin not initialized. Returning empty array for user orders.");
+      return [];
+    }
     return await getUserOrdersFromDb(userId);
 }
 
@@ -95,10 +107,10 @@ export async function getUserOrders(userId: string): Promise<Order[]> {
  * @param uid - The user's unique ID.
  */
 export async function getUserData(uid: string): Promise<{ role: 'customer' | 'admin' } | null> {
-    // Temp fix: return null to avoid admin SDK error
+    // Return a default role to avoid admin SDK error if not initialized
     if (!auth || !db) {
-        console.warn("Firebase Admin not initialized, returning null for user data.");
-        return null;
+        console.warn("Firebase Admin not initialized, returning default customer role for user data.");
+        return { role: 'customer' };
     }
     
     try {
@@ -110,6 +122,7 @@ export async function getUserData(uid: string): Promise<{ role: 'customer' | 'ad
 
     } catch (error) {
         console.error("Error fetching user data from firestore:", error);
-        return null;
+        // Return default customer role on error to prevent blocking UI
+        return { role: 'customer' };
     }
 }

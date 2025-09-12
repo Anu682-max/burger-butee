@@ -12,8 +12,9 @@ import {
 import type { User } from '@/lib/types';
 import { onAuthStateChanged, signOut as firebaseSignOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, type User as FirebaseUser } from 'firebase/auth';
 import { auth as clientAuth } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getUserData } from '@/app/actions';
 
 
 interface AuthContextType {
@@ -33,16 +34,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(clientAuth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        // To get the custom claims, we need to force a token refresh.
-        await firebaseUser.getIdToken(true);
-        const idTokenResult = await firebaseUser.getIdTokenResult();
-        const userRole = idTokenResult.claims.role === 'admin' ? 'admin' : 'customer';
-
+        // Fetch role from server action
+        const userData = await getUserData(firebaseUser.uid);
+        
         const userWithRole: User = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
-          role: userRole,
+          role: userData?.role || 'customer',
         };
         setUser(userWithRole);
       } else {
@@ -64,13 +63,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     const userCredential = await createUserWithEmailAndPassword(clientAuth, email, pass);
     const newUser = userCredential.user;
-    // We set the user role via a server-side action or cloud function
-    // For now, let's create the user doc, but custom claims are preferred.
+    
+    // Create a user document in Firestore with the default role
+    // Custom claims are preferred for production for better security
     await setDoc(doc(db, 'users', newUser.uid), {
         email: newUser.email,
         role: 'customer' // All new users are customers by default
     });
-    // onAuthStateChanged will handle setting the user, but claims might not be immediately available.
+    // onAuthStateChanged will handle setting the user.
   };
 
   const signOut = async () => {
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut,
   }), [user, loading]);
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
