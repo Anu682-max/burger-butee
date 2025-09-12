@@ -21,16 +21,3 @@ export const ingredients: Ingredient[] = [
 
 export const getIngredients = () => ingredients;
 export const getAvailableIngredients = () => JSON.stringify(ingredients.map(i => i.name));
-
-
-// --- MENU BURGERS ---
-const burgers: Burger[] = [
-  { id: '1', name: 'Сонгодог Чизбургер', ingredients: ['bun-classic', 'patty-beef', 'cheese-cheddar', 'topping-pickles', 'sauce-ketchup'], price: 8500, imgId: 'classic-cheeseburger' },
-  { id: '2', name: 'Бэкон Делюкс', ingredients: ['bun-sesame', 'patty-beef', 'cheese-cheddar', 'topping-lettuce', 'topping-tomato', 'topping-onion'], price: 12500, imgId: 'bacon-deluxe' },
-  { id: '3', name: 'Дабль Трабль', ingredients: ['bun-classic', 'patty-beef', 'patty-beef', 'cheese-cheddar', 'cheese-cheddar', 'topping-pickles'], price: 15000, imgId: 'double-trouble' },
-  { id: '4', name: 'Халуун ногоотой Халапено', ingredients: ['bun-sesame', 'patty-beef', 'cheese-swiss', 'topping-onion'], price: 11000, imgId: 'spicy-jalapeno' },
-  { id: '5', name: 'Цагаан хоолтны дилайт', ingredients: ['bun-sesame', 'cheese-swiss', 'topping-lettuce', 'topping-tomato'], price: 9000, imgId: 'veggie-delight' },
-  { id: '6', name: 'BBQ Ранчер', ingredients: ['bun-classic', 'patty-beef', 'cheese-cheddar', 'sauce-bbq'], price: 11500, imgId: 'bbq-rancher' },
-];
-
-export const getMenuBurgers = () => burgers;

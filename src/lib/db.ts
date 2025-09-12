@@ -1,8 +1,9 @@
+
 'use server';
 
-import { collection, addDoc, getDocs, query, where, updateDoc, doc, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc, Timestamp, orderBy, getDoc } from 'firebase/firestore';
 import { db } from './firebase-admin';
-import type { Order, OrderStatus, CartItem, OrderItem } from '@/lib/types';
+import type { Order, OrderStatus, CartItem, OrderItem, Burger } from '@/lib/types';
 
 
 // --- FIREBASE ORDERS (SERVER-SIDE) ---
@@ -78,12 +79,34 @@ export const updateStatusInData = async (orderId: string, status: OrderStatus): 
   });
 };
 
+// --- FIREBASE BURGERS (SERVER-SIDE) ---
+export const getAllBurgers = async (): Promise<Burger[]> => {
+    const q = query(collection(db, "burgers"), orderBy("name"));
+    const querySnapshot = await getDocs(q);
+    const burgers: Burger[] = [];
+    querySnapshot.forEach((doc) => {
+        burgers.push({
+            id: doc.id,
+            ...doc.data()
+        } as Burger);
+    });
+    return burgers;
+}
+
+export const updateBurgerInDb = async (burgerId: string, data: Partial<Burger>): Promise<Burger> => {
+    const burgerRef = doc(db, "burgers", burgerId);
+    await updateDoc(burgerRef, data);
+    const updatedDoc = await getDoc(burgerRef);
+    return { id: updatedDoc.id, ...updatedDoc.data() } as Burger;
+}
+
+
 // --- MOCK Functions (for AI) ---
 const mockOrderHistoryForAI = {
     'mock-user-123': ['Сонгодог Чизбургер', 'Дабль Трабль', 'Халуун ногоотой Халапено']
 };
 
-export const getMockUserOrderHistory = async (userId: string) => {
+export async function getMockUserOrderHistory(userId: string) {
   const history = mockOrderHistoryForAI[userId as keyof typeof mockOrderHistoryForAI] || [];
   return JSON.stringify(history);
 }

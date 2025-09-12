@@ -12,10 +12,9 @@ const allIngredients = getIngredients();
 
 type AddToCartButtonProps = {
   burger: Burger;
-  imageUrl: string;
 };
 
-export function AddToCartButton({ burger, imageUrl }: AddToCartButtonProps) {
+export function AddToCartButton({ burger }: AddToCartButtonProps) {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -29,7 +28,7 @@ export function AddToCartButton({ burger, imageUrl }: AddToCartButtonProps) {
       name: burger.name,
       price: burger.price,
       quantity: 1,
-      image: imageUrl,
+      image: burger.imageUrl,
       ingredients: burgerIngredients,
     };
     addToCart(cartItem);

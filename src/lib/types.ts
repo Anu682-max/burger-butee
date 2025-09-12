@@ -26,7 +26,7 @@ export interface Burger {
   name: string;
   ingredients: string[]; // array of ingredient ids
   price: number;
-  imgId: string;
+  imageUrl: string;
 }
 
 export interface OrderItem {

@@ -4,13 +4,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, ChefHat } from 'lucide-react';
-import { getMenuBurgers } from '@/lib/menu-data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { recommendBurgers } from '@/app/actions';
+import { getMenuBurgers, recommendBurgers } from '@/app/actions';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 
 async function RecommendedBurgers() {
   const recommendations = await recommendBurgers();
+  const allBurgers = await getMenuBurgers();
 
   if (!recommendations || recommendations.length === 0) {
     return (
@@ -20,7 +19,6 @@ async function RecommendedBurgers() {
     );
   }
 
-  const allBurgers = getMenuBurgers();
   const recommendedBurgers = allBurgers.filter(burger => recommendations.includes(burger.name));
 
   if (recommendedBurgers.length === 0) {
@@ -34,9 +32,8 @@ async function RecommendedBurgers() {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {recommendedBurgers.map((burger) => {
-        const placeholder = PlaceHolderImages.find(p => p.id === burger.imgId);
-        const imageUrl = placeholder?.imageUrl || `https://picsum.photos/seed/${burger.id}/400/300`;
-        const imageHint = placeholder?.imageHint || 'burger photo';
+        const imageUrl = burger.imageUrl || `https://picsum.photos/seed/${burger.id}/400/300`;
+        const imageHint = 'burger photo';
 
         return (
           <Card key={burger.id} className="flex flex-col overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-xl">
@@ -58,7 +55,7 @@ async function RecommendedBurgers() {
               </CardDescription>
             </CardContent>
             <CardFooter className="p-4">
-              <AddToCartButton burger={burger} imageUrl={imageUrl} />
+              <AddToCartButton burger={burger} />
             </CardFooter>
           </Card>
         );
@@ -67,19 +64,21 @@ async function RecommendedBurgers() {
   );
 }
 
-export default function Home() {
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-burger');
+export default async function Home() {
+  const burgers = await getMenuBurgers();
+  const heroBurger = burgers.find(b => b.id === 'bacon-deluxe') || burgers[0];
+  const heroImage = heroBurger?.imageUrl || "https://picsum.photos/seed/hero/1200/800";
 
   return (
     <div className="flex flex-col">
       <section className="relative flex h-[60vh] w-full items-center justify-center bg-gray-800 text-white md:h-[70vh]">
         <Image
-          src={heroImage?.imageUrl || "https://picsum.photos/seed/hero/1200/800"}
+          src={heroImage}
           alt="Delicious Burger"
           fill
           className="object-cover opacity-40"
           priority
-          data-ai-hint={heroImage?.imageHint || "gourmet burger"}
+          data-ai-hint={"gourmet burger"}
         />
         <div className="relative z-10 text-center">
           <h1 className="font-headline text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">

@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Salad } from 'lucide-react';
+import { Menu, Salad, Utensils } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { UserNav } from '@/components/user-nav';
 import { CartIcon } from '@/components/cart-icon';
@@ -34,9 +34,14 @@ export default function Header() {
             </Link>
           ))}
           {user?.role === 'admin' && (
+            <>
              <Link href="/admin/orders" className="text-sm font-medium text-primary transition-colors hover:text-primary/80">
-                Админ
+                Захиалга
              </Link>
+             <Link href="/admin/menu" className="text-sm font-medium text-primary transition-colors hover:text-primary/80">
+                Меню
+             </Link>
+            </>
           )}
         </nav>
 
@@ -68,9 +73,14 @@ export default function Header() {
                     </Link>
                   ))}
                   {user?.role === 'admin' && (
-                     <Link href="/admin/orders" className="font-semibold text-primary hover:text-primary/80">
-                        Админ
-                     </Link>
+                    <div className="border-t pt-6 grid gap-6">
+                        <Link href="/admin/orders" className="font-semibold text-primary hover:text-primary/80 flex items-center gap-2">
+                            <Menu className="h-5 w-5"/> Захиалгын удирдлага
+                        </Link>
+                        <Link href="/admin/menu" className="font-semibold text-primary hover:text-primary/80 flex items-center gap-2">
+                           <Utensils className="h-5 w-5" /> Меню удирдлага
+                        </Link>
+                    </div>
                   )}
                 </nav>
                 <div className="mt-8">

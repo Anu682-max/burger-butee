@@ -1,13 +1,12 @@
 
 import Image from 'next/image';
-import { getMenuBurgers } from '@/lib/menu-data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getMenuBurgers } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 import { Utensils } from 'lucide-react';
 
-export default function MenuPage() {
-  const burgers = getMenuBurgers();
+export default async function MenuPage() {
+  const burgers = await getMenuBurgers();
 
   return (
     <div className="container mx-auto p-4 py-8 md:p-8">
@@ -23,9 +22,8 @@ export default function MenuPage() {
       
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {burgers.map(burger => {
-          const placeholder = PlaceHolderImages.find(p => p.id === burger.imgId);
-          const imageUrl = placeholder?.imageUrl || `https://picsum.photos/seed/${burger.id}/400/300`;
-          const imageHint = placeholder?.imageHint || 'burger photo';
+          const imageUrl = burger.imageUrl || `https://picsum.photos/seed/${burger.id}/400/300`;
+          const imageHint = 'burger photo';
 
           return (
             <Card key={burger.id} className="flex flex-col overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-xl">
@@ -47,7 +45,7 @@ export default function MenuPage() {
                 </CardDescription>
               </CardContent>
               <CardFooter className="p-4">
-                <AddToCartButton burger={burger} imageUrl={imageUrl} />
+                <AddToCartButton burger={burger} />
               </CardFooter>
             </Card>
           );

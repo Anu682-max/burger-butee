@@ -3,10 +3,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { recommendBurgers as recommendBurgersFlow } from '@/ai/flows/menu-recommendation-flow';
-import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory } from '@/lib/db';
+import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory, getAllBurgers as getAllBurgersFromDb, updateBurgerInDb } from '@/lib/db';
 import { getAvailableIngredients } from '@/lib/menu-data';
-import type { CartItem, Order, OrderStatus } from '@/lib/types';
-import { auth, db } from '@/lib/firebase-admin';
+import type { Burger, CartItem, Order, OrderStatus } from '@/lib/types';
+import { auth, db, storage } from '@/lib/firebase-admin';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 const MOCK_USER_ID_FOR_AI = 'mock-user-123';
 
@@ -125,4 +126,52 @@ export async function getUserData(uid: string): Promise<{ role: 'customer' | 'ad
         // Return default customer role on error to prevent blocking UI
         return { role: 'customer' };
     }
+}
+
+/**
+ * Fetches all burgers from the database.
+ */
+export async function getMenuBurgers(): Promise<Burger[]> {
+  if (!db) {
+    console.warn("Firebase Admin not initialized. Returning empty array for burgers.");
+    return [];
+  }
+  return await getAllBurgersFromDb();
+}
+
+/**
+ * Updates a burger, especially its image.
+ * @param formData - The form data containing the burger ID and the new image.
+ */
+export async function updateBurger(formData: FormData): Promise<{ success: boolean; message?: string; updatedBurger?: Burger }> {
+  if (!auth || !storage) {
+    return { success: false, message: "Сервер бэлэн биш байна." };
+  }
+
+  const burgerId = formData.get('burgerId') as string;
+  const imageFile = formData.get('image') as File;
+
+  if (!burgerId || !imageFile) {
+    return { success: false, message: "ID эсвэл зураг дутуу байна." };
+  }
+
+  try {
+    // Upload image to Firebase Storage
+    const storageRef = ref(storage, `burgers/${burgerId}-${Date.now()}-${imageFile.name}`);
+    const snapshot = await uploadBytes(storageRef, imageFile);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    // Update burger document in Firestore
+    const updatedBurger = await updateBurgerInDb(burgerId, { imageUrl: downloadURL });
+    
+    revalidatePath('/menu');
+    revalidatePath('/admin/menu');
+    revalidatePath('/');
+
+    return { success: true, updatedBurger };
+
+  } catch (error) {
+    console.error("Error updating burger:", error);
+    return { success: false, message: "Бургер шинэчлэхэд алдаа гарлаа." };
+  }
 }
