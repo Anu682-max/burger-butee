@@ -81,7 +81,7 @@ export default function CartPage() {
               <div className="space-y-6">
                 {cart.map(item => (
                   <div key={item.id} className="flex items-center gap-4">
-                    <Image src={item.image} alt={item.name} width={100} height={100} className="rounded-md object-cover" />
+                    <Image src={item.image} alt={item.name} width={100} height={75} className="rounded-md object-cover" />
                     <div className="flex-grow">
                       <h3 className="font-semibold">{item.name}</h3>
                       <p className="text-sm text-muted-foreground">{item.price.toLocaleString('mn-MN')}₮</p>
