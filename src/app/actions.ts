@@ -7,7 +7,6 @@ import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders 
 import { getAvailableIngredients } from '@/lib/menu-data';
 import type { Burger, CartItem, Order, OrderStatus } from '@/lib/types';
 import { auth, db, storage } from '@/lib/firebase-admin';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 const MOCK_USER_ID_FOR_AI = 'mock-user-123';
 
@@ -156,12 +155,23 @@ export async function updateBurger(formData: FormData): Promise<{ success: boole
   }
 
   try {
-    // Upload image to Firebase Storage
-    const storageRef = ref(storage, `burgers/${burgerId}-${Date.now()}-${imageFile.name}`);
-    const snapshot = await uploadBytes(storageRef, imageFile);
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const bucket = storage.bucket();
+    const filePath = `burgers/${burgerId}-${Date.now()}-${imageFile.name}`;
+    const file = bucket.file(filePath);
+    
+    const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
 
-    // Update burger document in Firestore
+    await file.save(fileBuffer, {
+        metadata: {
+            contentType: imageFile.type,
+        },
+    });
+
+    const [downloadURL] = await file.getSignedUrl({
+      action: 'read',
+      expires: '03-09-2491',
+    });
+
     const updatedBurger = await updateBurgerInDb(burgerId, { imageUrl: downloadURL });
     
     revalidatePath('/menu');
@@ -203,12 +213,23 @@ export async function updateHeroImage(formData: FormData): Promise<{ success: bo
   }
 
   try {
-    // Upload image to Firebase Storage
-    const storageRef = ref(storage, `settings/heroImage-${Date.now()}-${imageFile.name}`);
-    const snapshot = await uploadBytes(storageRef, imageFile);
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const bucket = storage.bucket();
+    const filePath = `settings/heroImage-${Date.now()}-${imageFile.name}`;
+    const file = bucket.file(filePath);
+    
+    const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
 
-    // Update settings in Firestore
+    await file.save(fileBuffer, {
+        metadata: {
+            contentType: imageFile.type,
+        },
+    });
+
+    const [downloadURL] = await file.getSignedUrl({
+      action: 'read',
+      expires: '03-09-2491',
+    });
+
     await setHeroImageInDb(downloadURL);
     
     revalidatePath('/');
