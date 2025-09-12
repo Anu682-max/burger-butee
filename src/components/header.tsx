@@ -1,13 +1,13 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Hamburger, Utensils, Settings } from 'lucide-react';
+import { Menu, Utensils, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { UserNav } from '@/components/user-nav';
 import { CartIcon } from '@/components/cart-icon';
+import { BurgerIcon } from './icons';
 
 const navLinks = [
   { href: '/menu', label: 'Меню' },
@@ -23,7 +23,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <Hamburger className="h-8 w-8 text-primary" />
+          <BurgerIcon className="h-8 w-8 text-primary" />
           <span className="font-headline text-xl">Burger Land</span>
         </Link>
 
