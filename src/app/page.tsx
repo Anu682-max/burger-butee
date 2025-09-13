@@ -111,8 +111,9 @@ export default async function Home() {
         <Image
           src={heroImage}
           alt="Delicious Burger"
-          fill
-          className="object-cover opacity-40"
+          width={1920}
+          height={1080}
+          className="absolute inset-0 h-full w-full object-cover opacity-40"
           priority
           data-ai-hint={"gourmet burger"}
         />

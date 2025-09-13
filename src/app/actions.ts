@@ -190,7 +190,7 @@ export async function updateBurger(formData: FormData) {
  * Fetches the hero image URL from settings.
  */
 export async function getHeroImage(): Promise<string> {
-    return "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
+    return "/hero.png";
 }
 
 /**
@@ -207,7 +207,7 @@ export async function updateHeroImage(formData: FormData): Promise<{ success: bo
   if (!imageFile) {
     // This part is for ensuring the image is set in the database, even without a file upload this one time.
     try {
-      const newImageUrl = "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
+      const newImageUrl = "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media&token=7e06a72c-b261-42a3-9b33-28c9b20e9803";
       await setHeroImageInDb(newImageUrl);
       revalidatePath('/');
       revalidatePath('/admin/settings');
