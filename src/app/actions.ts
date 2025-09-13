@@ -190,11 +190,7 @@ export async function updateBurger(formData: FormData) {
  * Fetches the hero image URL from settings.
  */
 export async function getHeroImage(): Promise<string> {
-    if (!db) {
-        console.warn("Firebase Admin not initialized. Returning default hero image.");
-        return "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
-    }
-    return await getHeroImageFromDb();
+    return "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
 }
 
 /**
