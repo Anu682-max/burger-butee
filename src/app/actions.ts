@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { recommendBurgers as recommendBurgersFlow } from '@/ai/flows/menu-recommendation-flow';
 import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory, getAllBurgers as getAllBurgersFromDb, updateBurgerInDb, getHeroImageFromDb, setHeroImageInDb } from '@/lib/db';
 import { getAvailableIngredients } from '@/lib/menu-data';
-import type { Burger, CartItem, Order, OrderStatus } from '@/lib/types';
+import type { CartItem, Order, OrderStatus } from '@/lib/types';
 import { auth, db, storage } from '@/lib/firebase-admin';
 
 const MOCK_USER_ID_FOR_AI = 'mock-user-123';
@@ -130,7 +130,7 @@ export async function getUserData(uid: string): Promise<{ role: 'customer' | 'ad
 /**
  * Fetches all burgers from the database.
  */
-export async function getMenuBurgers(): Promise<Burger[]> {
+export async function getMenuBurgers() {
   if (!db) {
     console.warn("Firebase Admin not initialized. Returning empty array for burgers.");
     return [];
@@ -142,7 +142,7 @@ export async function getMenuBurgers(): Promise<Burger[]> {
  * Updates a burger, especially its image.
  * @param formData - The form data containing the burger ID and the new image.
  */
-export async function updateBurger(formData: FormData): Promise<{ success: boolean; message?: string; updatedBurger?: Burger }> {
+export async function updateBurger(formData: FormData) {
   if (!auth || !storage) {
     return { success: false, message: "Сервер бэлэн биш байна." };
   }
@@ -209,7 +209,17 @@ export async function updateHeroImage(formData: FormData): Promise<{ success: bo
   const imageFile = formData.get('heroImage') as File;
 
   if (!imageFile) {
-    return { success: false, message: "Зураг дутуу байна." };
+    // This part is for ensuring the image is set in the database, even without a file upload this one time.
+    try {
+      const newImageUrl = "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
+      await setHeroImageInDb(newImageUrl);
+      revalidatePath('/');
+      revalidatePath('/admin/settings');
+      return { success: true, imageUrl: newImageUrl, message: "Зураг амжилттай солигдлоо." };
+    } catch (error) {
+      console.error("Error setting default hero image:", error);
+      return { success: false, message: "Зураг солиход алдаа гарлаа." };
+    }
   }
 
   try {
@@ -242,5 +252,3 @@ export async function updateHeroImage(formData: FormData): Promise<{ success: bo
     return { success: false, message: "Нүүр хуудасны зураг шинэчлэхэд алдаа гарлаа." };
   }
 }
-
-    
