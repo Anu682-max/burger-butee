@@ -252,3 +252,4 @@ export async function updateHeroImage(formData: FormData): Promise<{ success: bo
     return { success: false, message: "Нүүр хуудасны зураг шинэчлэхэд алдаа гарлаа." };
   }
 }
+

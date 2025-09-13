@@ -128,9 +128,7 @@ export const getHeroImageFromDb = async (): Promise<string> => {
 
 export const setHeroImageInDb = async (imageUrl: string): Promise<void> => {
     if (!db) throw new Error("Database not available");
-    // Ensure the new image is set directly
-    const newImageUrl = "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
-    await setDoc(doc(db, "settings", "site"), { heroImageUrl: newImageUrl }, { merge: true });
+    await setDoc(doc(db, "settings", "site"), { heroImageUrl: imageUrl }, { merge: true });
 }
 
 
@@ -143,3 +141,4 @@ export async function getMockUserOrderHistory(userId: string) {
   const history = mockOrderHistoryForAI[userId as keyof typeof mockOrderHistoryForAI] || [];
   return JSON.stringify(history);
 }
+
