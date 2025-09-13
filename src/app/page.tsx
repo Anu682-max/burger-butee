@@ -8,8 +8,8 @@ import { getMenuBurgers, recommendBurgers, getHeroImage } from '@/app/actions';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 
 async function RecommendedBurgers() {
-  const recommendations = await recommendBurgers();
   const allBurgers = await getMenuBurgers();
+  const recommendations = ["Classic Cheeseburger", "Bacon Deluxe", "Veggie Burger"];
 
   if (!recommendations || recommendations.length === 0) {
     return (
@@ -19,14 +19,52 @@ async function RecommendedBurgers() {
     );
   }
 
-  const recommendedBurgers = allBurgers.filter(burger => recommendations.includes(burger.name));
+  const recommendedBurgers = allBurgers.filter(burger => recommendations.includes(burger.name)).slice(0, 3);
+
 
   if (recommendedBurgers.length === 0) {
-    return (
+     // Fallback to showing the first 3 burgers if recommendations are not in the menu
+    const fallbackBurgers = allBurgers.slice(0, 3);
+    if (fallbackBurgers.length === 0) {
+      return (
         <div className="text-center text-muted-foreground">
-            <p>Санал болгосон бургер одоогоор менюнд байхгүй байна.</p>
+            <p>Санал болгох бургер менюнд одоогоор байхгүй байна.</p>
         </div>
-    );
+      );
+    }
+    return (
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {fallbackBurgers.map((burger) => {
+        const imageUrl = burger.imageUrl || `https://picsum.photos/seed/${burger.id}/400/300`;
+        const imageHint = 'burger photo';
+
+        return (
+          <Card key={burger.id} className="flex flex-col overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+            <CardHeader className="p-0">
+              <div className="relative h-48 w-full overflow-hidden">
+                <Image
+                  src={imageUrl}
+                  alt={burger.name}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={imageHint}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="flex-grow p-4">
+              <CardTitle>{burger.name}</CardTitle>
+              <CardDescription className="mt-2 text-lg font-bold text-primary">
+                {burger.price.toLocaleString('mn-MN')}₮
+              </CardDescription>
+            </CardContent>
+            <CardFooter className="p-4">
+              <AddToCartButton burger={burger} />
+            </CardFooter>
+          </Card>
+        );
+      })}
+    </div>
+    )
   }
 
   return (
@@ -104,7 +142,7 @@ export default async function Home() {
               Танд зориулсан санал
             </h2>
             <p className="mt-3 text-lg text-muted-foreground">
-              Бидний хиймэл оюун таны өмнөх захиалга дээр үндэслэн санал болгож байна.
+              Хамгийн алдартай бургеруудаас санал болгож байна.
             </p>
           </div>
           <RecommendedBurgers />
