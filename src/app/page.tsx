@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, ChefHat } from 'lucide-react';
-import { getMenuBurgers, recommendBurgers } from '@/app/actions';
+import { getMenuBurgers, recommendBurgers, getHeroImage } from '@/app/actions';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 
 async function RecommendedBurgers() {
@@ -103,7 +103,7 @@ async function RecommendedBurgers() {
 }
 
 export default async function Home() {
-  const heroImage = "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
+  const heroImage = await getHeroImage();
 
   return (
     <div className="flex flex-col">
