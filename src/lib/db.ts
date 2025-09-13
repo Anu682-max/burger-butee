@@ -141,4 +141,3 @@ export async function getMockUserOrderHistory(userId: string) {
   const history = mockOrderHistoryForAI[userId as keyof typeof mockOrderHistoryForAI] || [];
   return JSON.stringify(history);
 }
-

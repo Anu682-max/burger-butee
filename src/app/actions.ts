@@ -192,7 +192,7 @@ export async function updateBurger(formData: FormData) {
 export async function getHeroImage(): Promise<string> {
     if (!db) {
         console.warn("Firebase Admin not initialized. Returning default hero image.");
-        return "https://picsum.photos/seed/hero/1200/800";
+        return "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
     }
     return await getHeroImageFromDb();
 }
@@ -252,4 +252,3 @@ export async function updateHeroImage(formData: FormData): Promise<{ success: bo
     return { success: false, message: "Нүүр хуудасны зураг шинэчлэхэд алдаа гарлаа." };
   }
 }
-
