@@ -190,7 +190,7 @@ export async function updateBurger(formData: FormData) {
  * Fetches the hero image URL from settings.
  */
 export async function getHeroImage(): Promise<string> {
-    return "/hero.png";
+    return "/build.png";
 }
 
 /**
