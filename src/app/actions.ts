@@ -3,7 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { recommendBurgers as recommendBurgersFlow } from '@/ai/flows/menu-recommendation-flow';
-import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory, getAllBurgers as getAllBurgersFromDb, updateBurgerInDb, getHeroImageFromDb, setHeroImageInDb } from '@/lib/db';
+import { addOrderToData as addOrderToDataInDb, updateStatusInData, getAllOrders as getAllOrdersFromDb, getUserOrders as getUserOrdersFromDb, getMockUserOrderHistory, getAllBurgers as getAllBurgersFromDb, updateBurgerInDb, setHeroImageInDb } from '@/lib/db';
 import { getAvailableIngredients } from '@/lib/menu-data';
 import type { CartItem, Order, OrderStatus } from '@/lib/types';
 import { auth, db, storage } from '@/lib/firebase-admin';
