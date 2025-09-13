@@ -32,6 +32,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!clientAuth) {
+      console.warn('Firebase auth not available');
+      setLoading(false);
+      return;
+    }
+    
     const unsubscribe = onAuthStateChanged(clientAuth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         // Fetch role from server action
@@ -54,12 +60,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, pass: string) => {
+    if (!clientAuth) {
+      throw new Error('Firebase auth not available');
+    }
     setLoading(true);
     await signInWithEmailAndPassword(clientAuth, email, pass);
     // onAuthStateChanged will handle setting the user
   };
 
   const signUp = async (email: string, pass: string) => {
+    if (!clientAuth || !db) {
+      throw new Error('Firebase services not available');
+    }
     setLoading(true);
     const userCredential = await createUserWithEmailAndPassword(clientAuth, email, pass);
     const newUser = userCredential.user;
@@ -74,6 +86,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    if (!clientAuth) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     await firebaseSignOut(clientAuth);
     setUser(null);

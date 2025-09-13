@@ -14,9 +14,25 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Initialize Firebase with error handling
+let app: any = null;
+let auth: any = null;
+let db: any = null;
+
+try {
+  // Check if required config is available
+  const hasRequiredConfig = firebaseConfig.apiKey && firebaseConfig.projectId;
+  
+  if (hasRequiredConfig) {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+    console.log('Firebase client initialized successfully');
+  } else {
+    console.warn('Firebase configuration incomplete - client services disabled');
+  }
+} catch (error) {
+  console.error('Firebase client initialization error:', error);
+}
 
 export { app, auth, db };
