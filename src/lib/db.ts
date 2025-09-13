@@ -111,7 +111,7 @@ export const updateBurgerInDb = async (burgerId: string, data: Partial<Burger>):
 
 // --- FIREBASE SETTINGS (SERVER-SIDE) ---
 export const getHeroImageFromDb = async (): Promise<string> => {
-    const defaultImage = "https://picsum.photos/seed/hero/1200/800";
+    const defaultImage = "https://firebasestorage.googleapis.com/v0/b/studio-8825636989-becf3.appspot.com/o/Burger%20build.png?alt=media";
     if (!db) return defaultImage;
     
     try {
